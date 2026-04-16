@@ -9,43 +9,49 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Using environment variable for API Security
   const API_KEY = process.env.REACT_APP_TMDB_KEY;
 
   useEffect(() => {
     const getData = async () => {
       if (!API_KEY) {
-        setError("API Key is missing. Check your .env file.");
+        setError("API Key is missing. Please check your .env file.");
         return;
       }
+      
       setLoading(true);
       setError(null);
+      
       try {
         const url = search 
           ? `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(search)}`
           : `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}`;
         
         const res = await fetch(url);
-        if (!res.ok) throw new Error('Network response was not ok');
+        if (!res.ok) throw new Error('Could not fetch data from server.');
+        
         const data = await res.json();
         setMovies(data.results || []);
       } catch (err) {
-        setError("Failed to load movies. Please check your connection.");
+        setError("Network error: Failed to load movies.");
       } finally {
         setLoading(false);
       }
     };
 
-    const delay = setTimeout(getData, 500); // Debounce to save API calls
+    // Debouncing: waits 500ms after user stops typing to reduce API calls
+    const delay = setTimeout(getData, 500); 
     return () => clearTimeout(delay);
   }, [search, API_KEY]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-black">
       <Header setSearchQuery={setSearch} />
-      <div className="max-w-7xl mx-auto p-6">
+      <main className="max-w-7xl mx-auto p-6">
+        {/* Requirement: Implement basic loading and error states */}
         {error && <ErrorMessage message={error} />}
         {loading ? <Loader /> : <MovieGrid movies={movies} />}
-      </div>
+      </main>
     </div>
   );
 }
